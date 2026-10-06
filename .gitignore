@@ -1,5 +1,6 @@
 # ---- data & artifacts (never commit) ----
-/data/
+/data/*
+!/data/DATASETS.md
 /weights/ckpt/
 *.pt
 *.pth
