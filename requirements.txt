@@ -1,0 +1,36 @@
+# Combat3D — runtime requirements
+#
+# ★ TORCH VERSION IS LOAD-BEARING. Do not let pip resolve it freely.
+#   The pipeline was validated on torch 2.4.1+cu121. A transitive install that pulls
+#   nvidia-cudnn-cu13 will silently break every convolution layer. See docs/PITFALLS.md §1.
+#
+# ★ mmcv must be the OFFICIAL PREBUILT wheel for cu121/torch2.4 — it is not on PyPI in a
+#   usable form. Install order matters; see docs/ENV_pose312.md for the full recipe.
+
+# --- core ---
+torch==2.4.1
+torchvision==0.19.1
+numpy
+scipy
+opencv-python-headless>=5.0.0     # 4.8.1.78 is built against numpy 1 and fails to load on numpy 2
+matplotlib
+Pillow
+einops
+timm
+pyyaml
+tqdm
+
+# --- 2D pose (ViTPose) — see docs/ENV_pose312.md for the --no-deps install order ---
+mmcv==2.2.0
+mmdet==3.3.0
+mmpose==1.3.2
+mmpretrain==1.2.0
+mmengine==0.10.7
+xtcocotools
+chumpy
+
+# --- detection (only needed for the fully self-built arm C) ---
+ultralytics
+
+# --- misc ---
+setuptools<81                     # >=81 drops pkg_resources, which mmengine needs

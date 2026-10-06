@@ -1,0 +1,57 @@
+# ---- data & artifacts (never commit) ----
+/data/
+/weights/ckpt/
+*.pt
+*.pth
+*.bin
+*.onnx
+*.npz
+*.npy
+*.pkl
+*.mp4
+*.avi
+
+# ---- pipeline outputs ----
+frames/
+calib_gt_*/
+calib_*/
+det_gt2_*/
+det_self2_*/
+vp_self2_*/
+asm_off_*/
+asm_self2_*/
+em_off_*/
+em_self2_*/
+em_naive_*/
+emfit_*/
+gt_*/
+final13_*/
+render3d_*/
+nodes_*/
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+envs/
+
+# ---- backups of edited files ----
+*.bak
+*.bak_*
+*.orig
+*.rej
+
+# ---- logs & scratch ----
+*.log
+logs/
+tmp/
+.pipcache/
+*.zip
+
+# ---- secrets ----
+.env
+*.secret
+*credentials*

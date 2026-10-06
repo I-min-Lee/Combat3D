@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "Combat3D: Monocular 3D Human Pose in High-Occlusion Contact Sports without Motion Capture"
+message: "If you use this code, data or checkpoints, please cite the paper."
+type: software
+license: MIT
+# ★ TODO: 建好仓库后把 I-min-Lee 换掉
+repository-code: "https://github.com/I-min-Lee/Combat3D"
+abstract: >-
+  A zero-manual-annotation multi-view 3D label-production framework for
+  high-occlusion, close-contact combat sports, plus the monocular lifting recipe
+  built on it. Provides a layer-wise error budget for the zero-annotation route,
+  seven ablation-backed findings, and a root-regression head that recovers
+  absolute world-space placement (996 mm to 9 mm median error).
+keywords:
+  - 3D human pose estimation
+  - monocular
+  - multi-view
+  - pseudo-labels
+  - occlusion
+  - combat sports
+  - Harmony4D
+authors:
+  - family-names: "Lee"
+    given-names: "I-min"
+    # ★ TODO: 补单位（英文全称），例如 "Department of ..., ... University"
+    affiliation: "<Institution>"
+version: "1.0.0"
+date-released: "2026-10-05"

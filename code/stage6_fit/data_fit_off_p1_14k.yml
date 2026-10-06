@@ -1,0 +1,19 @@
+module: easymocap.datasets.base.MultiView
+args:
+  path: /root/autodl-tmp/emfit_rtd14k/pid1
+  out: /root/autodl-tmp/emfit_rtd14k/pid1/fit
+  subs: ['1','3','4','7','11']
+  subs_vis: []
+  keys:
+    keypoints2d: keypoints
+  ranges: [0, 14017, 1]
+  camera: none
+  pid: 1
+  reader:
+    image: {root: images, ext: png, read_image: False}
+    annot: {root: annots, ext: json, check_length: False, read: True}
+    keypoints3d: {root: keypoints3d, ext: json, key: [keypoints3d], read: True}
+  writer:
+    fullpose: {root: smplfull}
+    keypoints3d: {root: keypoints3d, ext: .json}
+    render: {enable: False, root: smplmesh, ext: .jpg, scale: 0.5, mode: image}
