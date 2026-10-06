@@ -24,6 +24,35 @@ what that costs.
 
 ---
 
+## Demo
+
+Short segments from the **armored stick-fighting** domain — our own dataset, and the
+second domain in which the layer contract was validated.
+
+<p align="center">
+  <img src="media/demo_raw.gif" width="410" alt="Raw footage from one camera view">
+  <img src="media/demo_smpl.gif" width="410" alt="SMPL fitted to the triangulated labels">
+</p>
+
+**Left — raw footage** from a single camera view.
+**Right — SMPL fitted to the triangulated labels**, overlaid on the source view.
+
+Still frames reconstructed in world space (pose nodes only; the weapon is deliberately not
+drawn, as it is outside what this pipeline reconstructs):
+
+<p align="center">
+  <img src="media/render_grid_1.1.png" width="410" alt="Rendered 13-joint skeleton, take 1.1">
+  <img src="media/render_grid_0.1.png" width="410" alt="Rendered 13-joint skeleton, take 0.1">
+</p>
+
+Full-length clips: [`media/demo_raw.mp4`](media/demo_raw.mp4) · [`media/demo_smpl.mp4`](media/demo_smpl.mp4)
+
+> **Note on the footage.** These are real people from a private dataset. See the terms in
+> `Combat3D-kendo-0.1-sample/README.md` §5 — research reproduction only; do not
+> redistribute; do not attempt to identify the individuals.
+
+---
+
 ## Results at a glance
 
 All numbers are **MPJPE / PA-MPJPE in mm**, root-relative, evaluated on **9 genuinely

@@ -10,6 +10,7 @@
 *.npy
 *.pkl
 *.mp4
+!/media/*.mp4
 *.avi
 
 # ---- pipeline outputs ----
