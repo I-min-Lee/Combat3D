@@ -291,7 +291,11 @@ Combat3D/
 ├── configs/h4d_metric_scale.json
 ├── weights/README.md              # where to put the downloaded checkpoints (+ md5 manifest)
 ├── data/DATASETS.md               # every npz dataset produced, with counts
-├── figs/                          # fig1…fig9, as used in the docs
+├── figs/                          # fig1…fig10 (framework, pipeline, error budget, complexity, …)
+├── media/                         # demo clips and rendered stills
+│   ├── demo_raw.mp4 / .gif        #   input footage, as captured
+│   ├── demo_smpl.mp4 / .gif       #   reconstructed motion
+│   └── render_grid_*.png          #   multi-view render grid
 └── (working session history is not part of this release)
 ```
 ```
