@@ -1,26 +1,69 @@
 # Combat3D
 
-**Monocular 3D human pose in high-occlusion contact sports — without motion capture.**
+### The frame-rate axis of monocular 3D lifting: temporal receptive fields are specified in *frames* but mean *seconds*
 
-Combat3D is a *zero-manual-annotation* 3D label-production framework plus the monocular
-lifting recipe built on top of it, evaluated on **Harmony4D** (close-contact combat:
-wrestling / jiu-jitsu / MMA / sword) and cross-validated on **CMU Panoptic** (independent
-optical mocap).
+…together with a **zero-manual-annotation** label-production framework for high-occlusion
+contact sports, the domain that supplies the measurements.
 
-The domain of interest — two athletes in continuous body contact — is one where **motion
-capture physically cannot produce ground truth**: reflective markers are occluded by the
-opponent and by the subject's own body, and body contact knocks them off. There is no
-cost argument here; it is a physical constraint. This repository is the artifact behind
-the claim that a *zero-annotation* multi-view pipeline can produce labels good enough to
-fine-tune an off-the-shelf monocular lifter into that domain, and it quantifies exactly
-what that costs.
+---
 
-> **This is a measurement-oriented contribution, not a new network.** The pipeline is
-> assembled from existing components (multi-view triangulation, SMPL fitting, an
-> off-the-shelf monocular lifter). We do **not** claim architectural novelty. What we
-> provide is a *layer-wise error budget* for the zero-annotation route, seven
-> ablation-backed rules, and the code + weights + exact commands to reproduce every
-> number we report.
+## The main result: frame rate is a deployment variable, not a hyper-parameter
+
+**Every published temporal monocular 3D lifter fixes its temporal window in *frames*** —
+VideoPose3D / dilated TCN: 243 frames; LAMP-Net: *"4 seconds"* (parenthetically 120 frames at 30 Hz);
+MotionBERT: `maxlen = 243`. The frames-to-seconds conversion **is the frame rate**, and the frame
+rate is not controlled at deployment: broadcast feeds run at 25 / 30 / 50 / 60 fps and phones reach
+240 fps. Within the scope of our search, **no work has examined cross-frame-rate transfer**.
+
+On **52 unseen scenes of the public Harmony4D dataset**, with **the same model, the same content and
+the same ground truth**, changing only the input sampling rate gives:
+
+| test frame rate | 20 (train) | 10 | 5 | 4 |
+|---|---|---|---|---|
+| end-to-end MPJPE | **21.7 mm** | 29.1 (+33.8%) | 41.0 (+88.6%) | 44.9 (+106.5%) |
+
+Monotonic and dose–response, and the unseen-scene readings match the full-data ones (ruling out
+memorisation). The **upward** direction is completed with a self-collected **200 fps** capture:
++a model trained at 200 fps degrades **+24.1%** at 25 fps and **+63.8%** at 5 fps.
+
+**Three countermeasures, compared on the same protocol:**
+
+| test fps | base | ① frame-rate aug. | ② time-norm. window | **★③ Δt conditioning** |
+|---|---|---|---|---|
+| 20 | **21.7** | 41.9 | 21.7 | **21.9** |
+| 10 | 29.1 | 40.6 | 30.2 | **22.7** |
+| 5 | 41.0 | 34.7 | 41.7 | **24.9** |
+| steepness | **+89%** | +0% (origin +93%) | worse | **+14%** |
+
+* **★③ Δt conditioning is the solution** — one extra input channel `log2(fps/f0)` plus a widened
+  `joints_embed` `(512,3) → (512,4)`: **the native rate does not degrade**, and the 10 / 5 fps errors
+  drop by **22% / 39%**.
+* **① frame-rate augmentation** flattens the curve but **sacrifices the origin (+93%)** — it is a
+  countermeasure for an unknown/varied deployment rate, not a universal improvement.
+* **② the inference-time time-normalised window gives no gain** on either dataset —
+  the countermeasure lives in **training and architecture, not in inference**.
+
+A cross-dataset picture (Harmony4D / long-weapon 200 fps / Panoptic), a mechanism explained by an
+**approximately constant absolute penalty (~+20 mm at 5 fps)**, and **a hypothesis we refuted
+ourselves** are in [`monocular/fps_axis/`](monocular/fps_axis/README.md).
+
+---
+
+## The carrier domain (where the measurements come from)
+
+Two athletes in continuous body contact — wrestling / jiu-jitsu / MMA / armored stick-fighting — is
+a setting where **motion capture physically cannot produce ground truth**: reflective markers are
+occluded by the opponent and by the subject's own body, and body contact knocks them off. There is no
+cost argument here; it is a physical constraint.
+
+The repository therefore also contains a *zero-manual-annotation* multi-view label-production
+framework and the monocular lifting recipe built on it, evaluated on **Harmony4D** and
+cross-validated on **CMU Panoptic** (independent optical mocap).
+
+> **Scope note.** The label pipeline itself is assembled from existing components (multi-view
+> triangulation, SMPL fitting, an off-the-shelf monocular lifter) and we claim **no architectural
+> novelty** for it. It contributes a *layer-wise error budget*, seven ablation-backed rules, and the
+> code + weights + exact commands to reproduce every number. **The new claim is the frame-rate axis.**
 
 ---
 
@@ -178,6 +221,9 @@ Combat3D/
 │   ├── viz/                  # re-projection overlays, 3D renders
 │   └── env/sitecustomize.py  # py3.12 / numpy2 compatibility shim (required)
 ├── monocular/                # the monocular lifter layer (MotionBERT fine-tuning)
+│   ├── fps_axis/             # ★ THE FRAME-RATE AXIS (this paper's new claim)
+│   │   ├── fps_axis.py       #   build / train (with Δt conditioning) / eval ladder
+│   │   └── README.md         #   the numbers, the three countermeasures, the pitfalls
 │   ├── kb/                   #   kb_train.py, kb_common.py, data builders, QA
 │   ├── mb_npz.py             #   Harmony4D artifacts → training npz
 │   ├── mb_to_final13.py      #   fine-tuned lifter → final 13-joint world output
@@ -240,7 +286,13 @@ See [`weights/README.md`](weights/README.md) for the full table and MD5s. Primar
 | `Combat3D_OurLabel69.pt` | arm B-69 (controlled comparison) |
 | `Combat3D_SelfLabel_v2.pt` | arm C (exploratory) |
 | `rh_h4d_v04_w0_full.pt` | root-regression head (9 mm) |
+| ★ `h4d_dt.pt` | **Δt conditioning (4-channel input) — the frame-rate solution** |
+| ★ `h4d_aug.pt` | frame-rate augmentation (3-channel; flattens but raises the origin) |
 | `base_vp3d_ft120.pt`, `base_mixste_ft.pt` | fine-tuned baselines |
+
+`h4d_dt.pt` loads into the standard `DSTformer` **with `dim_in=4`** and `joints_embed`
+widened from `(512,3)` to `(512,4)` — see `monocular/fps_axis/fps_axis.py:build_dt_model`.
+The 4th input channel is a constant per clip: `log2(fps / 20)`.
 
 ## What this work does *not* claim
 
@@ -251,6 +303,25 @@ See [`weights/README.md`](weights/README.md) for the full table and MD5s. Primar
 * **Not a CCF-A system paper.** This is a measurement + protocol contribution.
 * **Weights are derivatives.** Fine-tuned from MotionBERT / VideoPose3D / MixSTE
   checkpoints; the upstream licences still apply.
+
+
+**Frame-rate specific disclaimers (2026-10-09).** We do **not** claim:
+
+- the multi-view pseudo-label route — **Suzuki et al., CVPRW CVSports 2024** do
+  multi-view pseudo-labels → monocular fine-tuning in a sports domain, a construction
+  identical to ours;
+- camera-agnostic lifting — **RUMPL** (ray representation, deliberately camera-invariant),
+  **Ray3D**, **EPOCH**, **CameraPose**;
+- monocular multi-person identity — **PHALP**, **DETRAM**, **RAM**, **TesseTrack**,
+  **Zanfir et al.**, **Opti-Pose3D**, and CVPR 2025 close-interaction reconstruction;
+- the discovery that 2D metrics do not predict 3D quality — **2TRAX3** (MDPI Sensors,
+  kickboxing) already states it;
+- absolute/global root localization — **RootNet**, **PoseAnchor** (ICCV 2025).
+
+**What we do claim on this axis**: that *no prior work has examined cross-frame-rate
+transfer*, that the degradation is monotonic and large on public data, that it is an
+approximately constant absolute penalty rather than a motion-speed effect (a hypothesis we
+refuted ourselves), and that **Δt conditioning** removes it without degrading the native rate.
 
 ## Citation
 
