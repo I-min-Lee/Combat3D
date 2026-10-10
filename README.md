@@ -1,19 +1,58 @@
 # Combat3D
 
-### The frame-rate axis of monocular 3D lifting: temporal receptive fields are specified in *frames* but mean *seconds*
+### Monocular 3D human motion for mocap-free close-combat scenes: zero-annotation label production, domain adaptation, and capability boundaries
 
-…together with a **zero-manual-annotation** label-production framework for high-occlusion
-contact sports, the domain that supplies the measurements.
+### —— with two quantities systematically hidden by evaluation protocols (absolute localisation / temporal resolution)
+
+**中文说明见 [README_CN.md](README_CN.md)。**
 
 ---
 
-## The main result: frame rate is a deployment variable, not a hyper-parameter
+## What this is
 
-**Every published temporal monocular 3D lifter fixes its temporal window in *frames*** —
-VideoPose3D / dilated TCN: 243 frames; LAMP-Net: *"4 seconds"* (parenthetically 120 frames at 30 Hz);
-MotionBERT: `maxlen = 243`. The frames-to-seconds conversion **is the frame rate**, and the frame
-rate is not controlled at deployment: broadcast feeds run at 25 / 30 / 50 / 60 fps and phones reach
-240 fps. Within the scope of our search, **no work has examined cross-frame-rate transfer**.
+**Some domains cannot capture 3D ground truth at all.** In close combat (wrestling / jiu-jitsu /
+MMA / armoured stick-fighting) markers are occluded by one's own body and by the opponent, and get
+knocked off — **no in-domain dataset with mocap truth exists**. We surveyed the public datasets
+layer by layer and **none satisfies all five requirements** (multi-view / intrinsics+extrinsics /
+ground truth / two-person close contact / heavy occlusion).
+
+This repository takes the **existing** route — *multi-view pseudo-labels → monocular lifting* — and
+**adapts it to this domain**, then measures what the adaptation costs and where it breaks.
+
+**We claim no architectural or modular novelty.** The mechanisms we use are prior work and are cited
+as such (`RootNet` for root-position regression, `DeciWatch` (ECCV 2022) for sparse→dense recovery,
+`MBTI` (ICCV 2025) for the frame-rate axis and rate conditioning, `MAMMA` (CVPR 2026) for markerless
+multi-view pipelines as ground truth). **What is non-trivial is the adaptation** — every item below
+is an answer to "why does the existing method not work here?":
+
+| Obstacle specific to this domain | Our adaptation | Effect |
+|---|---|---|
+| No official 2D; **fisheye**, close-range multi-camera | OPENCV_FISHEYE triangulation + per-joint **view-subset enumeration** + **box-contact re-weighting** | misusing the pinhole model degrades reprojection **by an order of magnitude** |
+| Contact makes the two boxes overlap heavily → pure geometry **always swaps them** | **position prior** + jersey-colour calibration | person selection **72% → 95.7%**; end-to-end **10×** |
+| ★ Multi-rig ⇒ the target contains a **different fixed rotation `R` per (take, view)** | ★ the model **cannot know which camera it belongs to** → shape destroyed; **set `R = I`**, target = pure camera-frame pose | wrong target → PA **38.1 → 50.0 mm** |
+| **Root-relative metrics discard absolute localisation**, yet tactical analysis / replay / inter-person distance **all need it** | **root-regression head** | geometric prior **996 mm → 9 mm** |
+| Deployment frame rate is uncontrolled, and this domain has **no ground truth to supervise it** | **rate conditioning** (one extra input channel) | curve steepness **+89% → +14%** |
+
+## Results
+
+| Quantity | Value |
+|---|---|
+| Pose **shape** (PA-MPJPE), in-domain | **32.6 mm** |
+| **held-out** vs official GT (9 unseen scenes) | **42.4 / 32.6 mm** |
+| Same protocol, fine-tuned **VideoPose3D** | **188.3 / 138.7 mm** → **4.4×** |
+| **Zero-shot** on independent true mocap — CMU Panoptic | **120.9 / 74.0 mm** |
+| **Zero-shot** on independent true mocap — MPI-INF-3DHP (6 sequences, 2840 frames) | **133.5 / 86.5 mm** |
+| Inter-person hip distance error | **< 1%** |
+| Zero-annotation cost at the **label** layer | **+13%** |
+
+**Two independent true-mocap datasets agree in magnitude** (PA 74.0 vs 86.5), which rules out
+"you happened to pick a matching dataset". **We do not claim that monocular matches multi-view** —
+`MAMMA` (CVPR 2026) notes the inherent difficulty of monocular inference under close interaction.
+
+## The frame-rate axis (one of the adaptations, not the headline)
+
+**The problem was already posed and formalised by `MBTI` (ICCV 2025) — EMDB-FPS benchmark, MCF
+metric. We claim no novelty for it.** We measure it in a **mocap-free** domain.
 
 On **52 unseen scenes of the public Harmony4D dataset**, with **the same model, the same content and
 the same ground truth**, changing only the input sampling rate gives:
@@ -22,9 +61,9 @@ the same ground truth**, changing only the input sampling rate gives:
 |---|---|---|---|---|
 | end-to-end MPJPE | **21.7 mm** | 29.1 (+33.8%) | 41.0 (+88.6%) | 44.9 (+106.5%) |
 
-Monotonic and dose–response, and the unseen-scene readings match the full-data ones (ruling out
-memorisation). The **upward** direction is completed with a self-collected **200 fps** capture:
-+a model trained at 200 fps degrades **+24.1%** at 25 fps and **+63.8%** at 5 fps.
+Monotonic and dose–response; unseen-scene readings match the all-scene ones (ruling out
+memorisation). **Both directions hold on public data** — training on the 5 fps copy only and testing
+back at 10 / 20 fps degrades by **+30.3% / +44.9%**.
 
 **Three countermeasures, compared on the same protocol:**
 
@@ -43,9 +82,15 @@ memorisation). The **upward** direction is completed with a self-collected **200
 * **② the inference-time time-normalised window gives no gain** on either dataset —
   the countermeasure lives in **training and architecture, not in inference**.
 
-A cross-dataset picture (Harmony4D / long-weapon 200 fps / Panoptic), a mechanism explained by an
-**approximately constant absolute penalty (~+20 mm at 5 fps)**, and **a hypothesis we refuted
-ourselves** are in [`monocular/fps_axis/`](monocular/fps_axis/README.md).
+> ⚠️ **Withdrawn readings.** An earlier revision reported a "200 fps trained" long-weapon arm and an
+> "upward" check of **+24.1% / +63.8%**. Auditing the data showed that dataset's two resolution
+> groups have **different native frame rates** (960×720 → 200 fps, 1920×1440 → 25 fps) and that the
+> arm was built from the 25 fps group while the meta recorded the *target* value. **Those readings
+> are withdrawn**; the public-data two-directional result above is unaffected.
+
+A cross-dataset picture (Harmony4D / long-weapon / Panoptic), a mechanism explained by an
+**approximately constant absolute penalty (~+19 mm at 5 fps)**, and **a hypothesis we refuted
+ourselves** are in [`monocular/temporal/fps_axis/`](monocular/temporal/fps_axis/README.md).
 
 ---
 
@@ -210,43 +255,45 @@ scene-specific by nature.
 
 ## Repository layout
 
+The layout follows the system's layers — **label production** (where the scene-specific layers
+live) → **monocular inference** → **evaluation and diagnostics**.
+
 ```
 Combat3D/
-├── code/                     # label-production pipeline (adapters + stages + eval + viz)
-│   ├── adapters/harmony4d/   # Harmony4D adapter: calib / frames / boxes / gt
-│   │   └── pipeline/         #   detect → 2D → assemble → triangulate → fit
-│   ├── adapters/panoptic/    # CMU Panoptic adapter (cross-domain transfer)
-│   ├── eval/                 # metrics, audits, stratification
-│   ├── stage1_detect … stage8_render/
-│   ├── viz/                  # re-projection overlays, 3D renders
-│   └── env/sitecustomize.py  # py3.12 / numpy2 compatibility shim (required)
-├── monocular/                # the monocular lifter layer (MotionBERT fine-tuning)
-│   ├── fps_axis/             # ★ THE FRAME-RATE AXIS (this paper's new claim)
-│   │   ├── fps_axis.py       #   build / train (with Δt conditioning) / eval ladder
-│   │   └── README.md         #   the numbers, the three countermeasures, the pitfalls
-│   ├── kb/                   #   kb_train.py, kb_common.py, data builders, QA
-│   ├── mb_npz.py             #   Harmony4D artifacts → training npz
-│   ├── mb_to_final13.py      #   fine-tuned lifter → final 13-joint world output
-│   ├── roothead*.py          #   absolute root-position regression head
-│   └── h4d_metrics.py        #   unified evaluation metric (fisheye convention)
-├── scripts/
-│   ├── README.md             # ★ call order table
-│   ├── 00_env.sh … 16_figs.sh  # stage wrappers, numbered in execution order
-│   └── tools/                # verbatim driver scripts as run on the server
+├── code/
+│   ├── label_pipeline/            # ① LABEL PRODUCTION (multi-view → 3D labels)
+│   │   ├── adapters/harmony4d/    #   · dataset adapter: calib / frames / boxes / gt
+│   │   │   └── pipeline/          #       detect → 2D → assemble → triangulate → fit
+│   │   ├── adapters/panoptic/     #   · second-dataset adapter (cross-domain transfer)
+│   │   ├── stages/                #   · the layer-wise stages, in execution order
+│   │   │   ├── 1_detect/  2_pose2d/  3_identity/  4_assemble/
+│   │   │   └── 5_triangulate/  6_fit/  7_temporal/  8_render/
+│   │   └── env/sitecustomize.py   #   · py3.12 / numpy2 compatibility shim (required)
+│   ├── eval/                      #   metrics, audits, stratification
+│   └── viz/                       #   re-projection overlays, 3D renders
+├── monocular/                     # ② MONOCULAR INFERENCE
+│   ├── kb/                        #   · training toolkit (kb_train.py, kb_common.py, builders, QA)
+│   ├── lifter/                    #   · Harmony4D artifacts → npz → fine-tuned lifter → 13-joint output
+│   ├── localization/              #   · absolute root-position regression head
+│   └── temporal/                  #   ★ frame-rate axis: effect, three countermeasures, pitfalls
+│       └── fps_axis/              #       fps_axis.py — build / train (Δt conditioning) / eval ladder
+├── scripts/                       # ③ DRIVERS
+│   ├── README.md                  #   ★ call order table
+│   ├── 00_env.sh … 23_render3d.sh #   stage wrappers, numbered in execution order
+│   └── tools/                     #   verbatim driver scripts as run on the server
+├── docs/                          # ④ DOCUMENTATION
+│   ├── REPRODUCE.md               #   ★ full reproduction guide, in call order
+│   ├── PITFALLS.md                #   ★ silent-failure list, ranked by cost
+│   ├── METRICS.md                 #   ★ which numbers are valid and which are retracted
+│   ├── ENV_pose312.md             #   exact environment recipe + install traps
+│   ├── SECOND_DOMAIN.md           #   ★ the armored stick-fighting second-domain evidence
+│   └── H4D_adapter_README.md
 ├── configs/h4d_metric_scale.json
-├── weights/README.md         # where to put the downloaded checkpoints
-├── data/DATASETS.md          # every npz dataset produced, with counts
-├── figs/                     # fig1…fig9, as used in the paper
-├── docs/
-│   ├── REPRODUCE.md          # ★ full reproduction guide, in call order
-│   ├── PITFALLS.md           # 15 pitfalls ranked by cost
-│   ├── METRICS.md            # ★ which numbers are valid and which are retracted
-│   ├── ENV_pose312.md        # exact environment recipe + 8 install traps
-│   ├── SECOND_DOMAIN.md      # ★ the armored stick-fighting second-domain evidence
-│   ├── H4D_adapter_README.md
-│   ├── paper/                # manuscript source (EN + 中文)
-│   └── notes/                # original session records (Chinese)
-└── (the manuscript and the working session history are not part of this release)
+├── weights/README.md              # where to put the downloaded checkpoints (+ md5 manifest)
+├── data/DATASETS.md               # every npz dataset produced, with counts
+├── figs/                          # fig1…fig9, as used in the docs
+└── (working session history is not part of this release)
+```
 ```
 
 ## Quick start
@@ -291,7 +338,7 @@ See [`weights/README.md`](weights/README.md) for the full table and MD5s. Primar
 | `base_vp3d_ft120.pt`, `base_mixste_ft.pt` | fine-tuned baselines |
 
 `h4d_dt.pt` loads into the standard `DSTformer` **with `dim_in=4`** and `joints_embed`
-widened from `(512,3)` to `(512,4)` — see `monocular/fps_axis/fps_axis.py:build_dt_model`.
+widened from `(512,3)` to `(512,4)` — see `monocular/temporal/fps_axis/fps_axis.py:build_dt_model`.
 The 4th input channel is a constant per clip: `log2(fps / 20)`.
 
 ## What this work does *not* claim

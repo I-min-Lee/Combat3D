@@ -16,7 +16,7 @@ ID=${2:?need integer seq id}
 NF=${3:?need last frame index}
 DEV=${DEV:-0}
 
-$PY "$B/code/adapters/harmony4d/pipeline/det_self_final.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/pipeline/det_self_final.py" \
     --frames-root "$B/frames/$ID/1" --out "$B/det_self2_$TAKE" \
     --views "$V" --tag "$TAKE" --start 1 --end "$NF" \
     --border-margin 0.15 --ref-view 04 --calib "$B/calib_gt_$TAKE" --device "$DEV"

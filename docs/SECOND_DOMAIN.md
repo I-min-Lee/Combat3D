@@ -75,14 +75,14 @@ State these plainly; a reviewer will find them otherwise.
    **absolute root-position error** (median 98–181 mm across three takes) against a
    **triangulation-derived** reference. Different quantity, different reference.
 2. **The armored stick-fighting reference is our own triangulation**, not an independent ground truth. By
-   this paper's own rule that is weak evidence — it can show that the monocular path
+   a single-domain rule, which is weak evidence — it can show that the monocular path
    agrees with the multi-view path, not that either is correct.
 3. **The armored stick-fighting root head error (≈86 mm median depth, validation) is ~10× the Harmony4D
    head (9 mm).** Different camera geometry, different validation take, different scale of
    scene. Do not present these side by side as if they were the same measurement.
 4. **Single sport, single institution.** "Two domains" means two, not many.
-5. The armored stick-fighting code is a **divergent branch**, not this repository. Treat the table in §3 as
-   documentation of what was done, pending §5.
+5. The armored stick-fighting code is a **divergent branch**, not this repository. Treat the second-domain table above as
+   documentation of what was done.
 
 ## 5. The released sample
 
@@ -108,7 +108,7 @@ the same 1000 frames become usable; skip it and residuals are 120–660 px.
 1. **Re-express the armored stick-fighting numbers in a metric comparable to Harmony4D**, or keep them
    explicitly labelled as a different quantity. A root-position error table is honest; a
    merged MPJPE table would not be.
-2. **Put the §3 table in the paper**, with a "re-implemented / reused" column. That table
+2. **Add a "re-implemented / reused" column to the second-domain table above.** That table
    *is* the validation of the principle. Without it, the principle is an assertion
    supported by one dataset.
 3. Note in the limitations that the armored stick-fighting reference is triangulation-derived, so it

@@ -1,6 +1,6 @@
 # Adapters: which layers are scene-specific and which are universal
 
-**Read this before deleting anything.** This directory is the *evidence* for the paper's
+**Read this before deleting anything.** This directory is the *evidence* for the
 design principle, not just a convenience wrapper around the data.
 
 The pipeline is split into five layers. Our measurements say exactly two of them are

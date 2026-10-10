@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """诊断：每个 (场次,视角) 在 两套标定 x 两种 pid<->personID 配对 下的 3D->2D 重投影中位。
-判据（手册 §2）：中位最低的那套 = 正确标定。"""
+判据（见 docs/METRICS.md 的标定一节）：中位最低的那套 = 正确标定。"""
 import os, sys, json, glob
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

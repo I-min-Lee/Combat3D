@@ -48,7 +48,7 @@ def main():
     confs = [float(x) for x in a.confs.split(',')]
     ks = [int(x) for x in a.ks.split(',')]
 
-    sp = importlib.util.spec_from_file_location('rtd', B + '/code/stage1_detect/rtdetr_pipeline.py')
+    sp = importlib.util.spec_from_file_location('rtd', B + '/code/label_pipeline/stages/1_detect/rtdetr_pipeline.py')
     m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m)
     from ultralytics import RTDETR
     model = RTDETR(B + '/port/weights/rtdetr-l.pt')

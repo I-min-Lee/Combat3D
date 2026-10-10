@@ -19,7 +19,7 @@ W=${W:-3840}; H=${H:-2160}
 
 AB_CAL="$B/calib_gt_$TAKE" AB_VIEWS="$V" AB_ANNOTS="$B/asm_${TAG}_$TAKE/annots" \
 AB_W_IMG="$W" AB_H_IMG="$H" AB_DET_DIR="$B/${DET}_$TAKE" \
-$PY "$B/code/adapters/harmony4d/pipeline/tri_h4d.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/pipeline/tri_h4d.py" \
     --out "$B/em_${TAG}_$TAKE" --start 1 --end "$((NF+1))" \
     --min-conf 0.3 --lams 1.0 --order 2
 echo "-> $B/em_${TAG}_$TAKE"

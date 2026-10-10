@@ -14,6 +14,6 @@ V="${V:-01,03,04,07,09,14}"
 TAKE=${1:?usage: 03a_boxes_official.sh <take>}
 RAW=${RAW:-$B/data/harmony4d/raw}
 
-$PY "$B/code/adapters/harmony4d/h4d_boxes.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/h4d_boxes.py" \
     --seq-root "$RAW/$TAKE" --out "$B/det_gt2_$TAKE" --views "$V" --tag "$TAKE"
 echo "-> $B/det_gt2_$TAKE"

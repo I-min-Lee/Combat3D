@@ -53,7 +53,7 @@ Notes
 * The dt channel is a constant per clip:  ``log2(fps / train_fps)``.
 * The time-normalised-window control scales the clip length to
   ``round(clip_len * fps / train_fps)``, clamped to a usable minimum.
-* This file deliberately mirrors the scripts used to produce the paper numbers; it is
+* This file deliberately mirrors the scripts used to produce the reported numbers; it is
   not a framework.
 """
 import argparse
@@ -261,7 +261,7 @@ def cmd_eval(a):
         rel = ('%+.1f%%' % (100 * (r_fixed / base - 1))) if (base and r_fixed) else ''
         print('%-10d %14s %14s   %s  (window %d frames)' % (test_fps, f(r_fixed), f(r_win), rel, win))
     print('\n(column 1 = the model as trained; column 2 = the inference-time control;'
-          '\n the second is reported as a NEGATIVE result in the paper.)')
+          '\n the second is reported as a NEGATIVE result.)')
 
 
 # --------------------------------------------------------------------------------- main

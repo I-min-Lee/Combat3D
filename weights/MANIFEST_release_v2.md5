@@ -97,3 +97,5 @@ bdbec017811621f72ee330957f72cd59  ./figs/fig5_zeroshot.png
 cb73d3a34a3ba8320b2b1f9143f6b648  ./figs/fig9_filter_negative.png
 c0f17d6ba4a5f67e5b63c6c763ac0be3  ./figs/fig6_labelquality.png
 9e3d9eb05b98ab72bbaaec687dc25a29  ./figs/fig7_pipeline.png
+792e252f37a3cc7ab5cf5a8af366f364  ./ckpt/h4d_dt.pt
+a8e6ee7f962ecc639d5eaed29747f159  ./ckpt/h4d_aug.pt

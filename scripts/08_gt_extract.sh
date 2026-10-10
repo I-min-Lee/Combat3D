@@ -14,6 +14,6 @@ V="${V:-01,03,04,07,09,14}"
 TAKE=${1:?usage: 08_gt_extract.sh <take>}
 RAW=${RAW:-$B/data/harmony4d/raw}
 
-$PY "$B/code/adapters/harmony4d/h4d_gt.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/h4d_gt.py" \
     --seq-root "$RAW/$TAKE" --out "$B/gt_$TAKE" --views "$V"
 echo "-> $B/gt_$TAKE"

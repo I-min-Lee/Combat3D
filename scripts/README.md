@@ -22,7 +22,7 @@ bash 06_triangulate.sh    016_mma4 <last-frame>
 | # | Wrapper | Underlying script | Reads | Writes |
 |---|---|---|---|---|
 | 00 | `00_env.sh` | *(inline check)* | `weights/ckpt/` | report |
-| 01 | `01_calib.sh` | `code/adapters/harmony4d/h4d_calib.py` | `raw/<take>` | `calib_gt_<take>` |
+| 01 | `01_calib.sh` | `code/label_pipeline/adapters/harmony4d/h4d_calib.py` | `raw/<take>` | `calib_gt_<take>` |
 | 02 | `02_frames.sh` | `h4d_frames.py` | `raw/<take>` | `frames/<ID>/1` |
 | 03a | `03a_boxes_official.sh` | `h4d_boxes.py` | `raw/<take>` | `det_gt2_<take>` |
 | 03b | `03b_boxes_self.sh` | `pipeline/det_self_final.py` | `frames/<ID>/1`, calib | `det_self2_<take>` |
@@ -46,7 +46,7 @@ bash 06_triangulate.sh    016_mma4 <last-frame>
 
 | # | Wrapper | Underlying script | Arm | Output | Size |
 |---|---|---|---|---|---|
-| 10 | `10_npz_armB.sh` | `monocular/mb_npz.py` | **B** | `mb/data_h4d_offtri` | 1800 npz / 150 takes |
+| 10 | `10_npz_armB.sh` | `monocular/lifter/mb_npz.py` | **B** | `mb/data_h4d_offtri` | 1800 npz / 150 takes |
 | 11 | `11_npz_armA.sh` | `scripts/tools/z31_mkab.py` | **A** | `mb/data_h4d_gtalign` | 828 npz / 69 takes |
 | 12 | `12_npz_armC.sh` | `scripts/tools/ae1_mknpz.py` | **C** | `mb/data_h4d_selfnpz` | 1476 npz / 123 takes |
 
@@ -57,7 +57,7 @@ bash 06_triangulate.sh    016_mma4 <last-frame>
 | # | Wrapper | Underlying script | Output |
 |---|---|---|---|
 | 13 | `13_train_main.sh` | `monocular/kb/kb_train.py` | `mb/ckpt/Combat3D_FULL.pt` |
-| 14 | `14_train_roothead.sh` | `monocular/roothead_h4d_train.py` | `mb/ckpt/rh_h4d_v04_w0_full.pt` |
+| 14 | `14_train_roothead.sh` | `monocular/localization/roothead_h4d_train.py` | `mb/ckpt/rh_h4d_v04_w0_full.pt` |
 | 15 | `15_train_baselines.sh` | `scripts/tools/z03_ft.py` | `mb/ckpt/base_*.pt` |
 | 16 | `16_ablation_qa.sh` | `scripts/tools/at5_retrain.sh` | `mb/ckpt/Combat3D_*_qa.pt` |
 
@@ -70,7 +70,7 @@ pre-trained checkpoints; without warm-starting the comparison is not fair.
 | # | Wrapper | Underlying script | Output |
 |---|---|---|---|
 | 17 | `17_eval_heldout.sh` | `scripts/tools/z25_gtEval.py` | 15-take and **9-take** held-out, vs official GT |
-| 18 | `18_eval_abc.sh` | `scripts/tools/ah1_abc.py` | the paper's main table |
+| 18 | `18_eval_abc.sh` | `scripts/tools/ah1_abc.py` | the main results table |
 | 19 | `19_eval_pertake.sh` | `scripts/tools/eval_pertake.py` | per-take PA / end-to-end / R |
 
 ## Stage 6 — ablations
@@ -83,9 +83,9 @@ pre-trained checkpoints; without warm-starting the comparison is not fair.
 
 | # | Wrapper | Underlying script | Output |
 |---|---|---|---|
-| 21 | `21_to_final13.sh` | `monocular/mb_to_final13.py` | `final13_mono_<take>` |
+| 21 | `21_to_final13.sh` | `monocular/lifter/mb_to_final13.py` | `final13_mono_<take>` |
 | 22 | `22_viz_overlay.sh` | `scripts/tools/v26_node_overlay.py` | `nodes_<take>` (mp4) |
-| 23 | `23_render3d.sh` | `code/stage8_render/render3d_5000f13.py` | `render3d_mono_<take>` |
+| 23 | `23_render3d.sh` | `code/label_pipeline/stages/8_render/render3d_5000f13.py` | `render3d_mono_<take>` |
 
 ## Stage 8 — figures
 
@@ -125,4 +125,4 @@ removed. The numbered wrappers call them; read them when a wrapper hides a detai
 ## Working history
 
 The ad-hoc scripts from the working session are not part of this release. Everything needed
-to reproduce the paper is in `code/`, `monocular/` and the numbered wrappers above. If you need the raw session history, contact the authors.
+to reproduce the reported numbers is in `code/`, `monocular/` and the numbered wrappers above. If you need the raw session history, contact the authors.

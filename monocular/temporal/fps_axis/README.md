@@ -1,6 +1,14 @@
-# The frame-rate axis of monocular 3D lifting
+# The frame-rate axis: one adaptation of Combat3D, not its headline
 
 > **Temporal receptive fields are specified in *frames* but mean *seconds*.**
+
+**★ The problem is not ours.** It has already been posed and formalised by
+**MBTI (ICCV 2025) — "Masked Blending Transformers with Implicit Positional Encoding for
+Frame-rate Agnostic Motion Estimation"**, together with the **EMDB-FPS benchmark** and the **MCF**
+consistency metric. **We claim no novelty for the problem or for the formalisation of frame-rate
+invariance.** What this directory contributes is to **measure it in a domain where mocap is
+unavailable** — MBTI's frame-rate agnosticism relies on high-frame-rate ground-truth mocap (AMASS)
+for reconstruction supervision, whereas our domain has no ground truth at all.
 
 Every published temporal monocular 3D lifter fixes its temporal window in **frames**:
 
@@ -11,9 +19,7 @@ Every published temporal monocular 3D lifter fixes its temporal window in **fram
 | MotionBERT | `maxlen = 243` **frames** |
 
 The frames-to-seconds conversion **is the frame rate**, and the frame rate is not controlled at
-deployment: broadcast feeds run at 25 / 30 / 50 / 60 fps, phones reach 240 fps. Within the scope of
-our search, **no work has examined cross-frame-rate transfer** — there is neither a formalisation of
-frame-rate invariance nor a controlled "train at rate A, test at rate B" experiment.
+deployment: broadcast feeds run at 25 / 30 / 50 / 60 fps, phones reach 240 fps.
 
 ---
 
@@ -29,11 +35,43 @@ The **same model, the same content, the same ground truth** — only the input s
 | 5 | 41.0 mm | **+88.6%** |
 | 4 | 44.9 mm | **+106.5%** |
 
-Monotonic and dose–response. On **unseen scenes** the reading matches the full-data one
-(+65.4% / +116.5%), which rules out memorisation.
+Monotonic and dose–response. On **unseen scenes** the reading matches the one taken over all 52
+fast-motion scenes, which rules out memorisation.
 
-We complete the **upward** direction with a self-collected **200 fps** long-weapon capture: a model
-trained at 200 fps degrades **+24.1%** at 25 fps and **+63.8%** at 5 fps.
+> ★ **2 fps is not measurable under this protocol**: after 10× down-sampling the held-out
+> sequences become shorter than the model's 121-frame window. An earlier revision reported
+> `+137.5%` at 2 fps; that run mixed copies of all three frame rates into the validation set,
+> which inflated its 20 fps origin to 24.3. **That reading is withdrawn.**
+
+**The upward direction also holds on public data — no higher-rate capture is needed.** A common
+misconception is that "train low → test high" requires a capture above 20 fps. It does not: drop the
+*training* stream to a low rate as well and you already have a clean upward experiment. Training on
+**the 5 fps copy only** (same takes, same recipe, same 121-frame window) and returning to the native
+rate gives:
+
+| Direction | Training rate | test 5 fps | test 10 fps | test 20 fps |
+|---|---|---|---|---|
+| down | 20 fps | **+88.6%** | **+33.8%** | — (native) |
+| **★up** | **5 fps** | — (native) | **+30.3%** | **+44.9%** |
+
+Both directions degrade by the same order of magnitude at the same mismatch factor, and both grow
+monotonically. A side observation: the 5 fps arm reaches **31.7 mm** at its **native** 5 fps, versus
+**41.0 mm** for the 20 fps arm (**−23%**) — matching the training rate to the deployment rate is
+itself worth a lot. (That cross-arm comparison carries a training-set-size difference, since a
+low-rate stream offers fewer usable clips; treat it as directional only.)
+
+```bash
+# upward: train on the 5 fps copy alone, then evaluate back at 20 / 10 / 5
+python fps_axis.py train --data <d5> --fps-of-dir 5 --val-takes <held_out_takes> --out h4d_5fsonly.pt
+python fps_axis.py eval  --ckpt h4d_5fsonly.pt --data <d20> --train-fps 5 --rates 20 10 5 4
+```
+
+> ⚠️ **Withdrawn.** An earlier revision reported a "200 fps trained" long-weapon arm degrading
+> **+24.1%** at 25 fps and **+63.8%** at 5 fps. Auditing the data showed that this dataset's two
+> resolution groups have **different native frame rates** (960×720 → 200 fps; 1920×1440 → 25 fps),
+> and that the arm was built from the **25 fps group** while the meta recorded the *target* value
+> (`stride = max(1, round(source_fps / TARGET_FPS))` → 1, i.e. no up-sampling).
+> **Those readings are withdrawn** — they are neither "200 fps training" nor an upward experiment.
 
 ---
 
@@ -84,7 +122,7 @@ Full ladder (long-weapon): `200→62.3 / 100→58.9 / 50→56.5 / 25→60.0 / 5�
 
 | Dataset | Frame-rate range | 20→5 fps degradation | absolute increment at 5 fps |
 |---|---|---|---|
-| **Harmony4D** (public, combat) | 20 → 2 | **+89%** | **+20 mm** |
+| **Harmony4D** (public, combat) | 20 → 4 | **+89%** | **+19 mm** |
 | **Self-collected long-weapon** (private) | 200 → 5 | +64% | — |
 | **Panoptic** (public, domed, slow) | 30 → 8 | **+1% (flat)** | buried in a 172 mm domain gap |
 
@@ -96,7 +134,7 @@ ballroom, degrades the most).
 In **absolute** terms the regularity is cleaner: every class gains **+15 to +25 mm at 5 fps**,
 independent of speed. Hence:
 
-> **The frame-rate mismatch costs an approximately *constant absolute* error (~+20 mm at 5 fps).
+> **The frame-rate mismatch costs an approximately *constant absolute* error (~+19 mm at 5 fps).
 > Its *relative* impact depends on how good the model already is** — a good model (21 mm) shows
 > +89%, a poor one (172 mm, Panoptic) shows +12% and the penalty is swamped by the domain gap.
 

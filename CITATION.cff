@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-title: "Combat3D: Monocular 3D Human Pose in High-Occlusion Contact Sports without Motion Capture"
-message: "If you use this code, data or checkpoints, please cite the paper."
+title: "Combat3D: Monocular 3D Human Motion for Mocap-Free Close-Combat Scenes"
+message: "If you use this code, data or checkpoints, please cite this repository."
 type: software
 license: MIT
 repository-code: "https://github.com/I-min-Lee/Combat3D"

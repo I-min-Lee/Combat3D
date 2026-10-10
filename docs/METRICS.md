@@ -11,19 +11,19 @@ headline claim — is also withdrawn.
 
 | Number | Status | Why |
 |---|---|---|
-| ~~end-to-end 190.3 mm~~ | ❌ **retracted** | produced by the `calibrate()` axis bug — see §2 |
+| ~~end-to-end 190.3 mm~~ | ❌ **retracted** | produced by the `calibrate()` axis bug — see the section below |
 | ~~"173 mm差额"~~ | ❌ **retracted** | same bug |
 | ~~jitter ratio 0.51~~ | ❌ **retracted** | same bug; true value **0.83–0.89** |
 | ~~"residual rotation 30°"~~ | ❌ **retracted** | dirty fit; true value **3.7°** |
 | ~~"173 mm全在对齐层"~~ (the claim) | ❌ **retracted** | the reconstructed number is 27.5 mm, and it is not all in the alignment layer |
-| ~~104 mm (root head, 828 npz)~~ | ❌ **removed from the paper** | superseded; reporting both datasets invites misreading. Report **9 mm** only. |
+| ~~104 mm (root head, 828 npz)~~ | ❌ **removed from the reported numbers** | superseded; reporting both datasets invites misreading. Report **9 mm** only. |
 | ~~from-scratch baseline 120.3 / 149.1 mm~~ | ❌ **discarded** | measures data efficiency, not architecture — unfair protocol |
 | ~~from-scratch MixSTE 338.5 mm~~ | ❌ **discarded, and not shipped** | same reason; the run is under-trained rather than representative. MixSTE is out of the table entirely — only ONNX weights are public, so the same-protocol warm start is impossible. |
 
 **Separating warm-started from from-scratch runs at a glance.** A run warm-started via
 `FT_INIT` begins near `loss ≈ 0.097`; a from-scratch run begins near `loss ≈ 0.72`. If your
 retrain logs show the latter, `FT_INIT` did not take effect and the resulting number is not
-the one in the paper. The checkpoints of the discarded runs are listed (and excluded) in
+the one reported here. The checkpoints of the discarded runs are listed (and excluded) in
 [`../weights/README.md`](../weights/README.md).
 
 ## 2. The bug that caused the largest retraction
@@ -58,7 +58,7 @@ Backup of the pre-fix file: `kb_train.py.bak_20261004_085904_calzeroaxis`.
 |---|---|
 | `27.5 mm` on 15 test takes | includes 6 `sword3` takes that overlap training → **not** a held-out number. Use the **9-take** figure. |
 | `18.4 mm` (val) | single validation take (`train01_hugging`); it is the model-selection set and is **optimistic by construction**. |
-| arm-to-arm validation comparisons | **invalid** — each arm validates against its own npz labels. See `REPRODUCE.md` §5.2. |
+| arm-to-arm validation comparisons | **invalid** — each arm validates against its own npz labels. See the aggregation warning in `REPRODUCE.md`. |
 | root-relative vs absolute | MPJPE/PA are root-relative and **cannot** see absolute position. Absolute placement needs the orthogonal λ metric. |
 
 ---
@@ -148,7 +148,7 @@ held-out column.)
   is the **shape** lower bound.
 * End-to-end uses a **single** `(s, R)` per `(take, view)`, root already zeroed, and
   **excludes absolute position**. It is therefore irrelevant to tactical-layer analysis —
-  which is exactly why we report the absolute layer separately (§4.2).
+  which is exactly why the absolute layer is reported separately (`LOCALIZATION` section in `REPRODUCE.md`).
 * SA-Metric: report shape and alignment **separately**. Reporting only end-to-end makes a
   model that learned the motion very well look worthless.
 * Every metric is computed in **millimetres** after applying the take's scale.

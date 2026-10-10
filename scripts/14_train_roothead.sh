@@ -12,5 +12,5 @@ B="${COMBAT3D_ROOT:-/workshop/Lym/combat3d}"
 PY="$B/envs/miniconda3/envs/pose312/bin/python"
 V="${V:-01,03,04,07,09,14}"
 GPU=${GPU:-0}
-CUDA_VISIBLE_DEVICES="$GPU" $PY "$B/monocular/roothead_h4d_train.py" \
+CUDA_VISIBLE_DEVICES="$GPU" $PY "$B/monocular/localization/roothead_h4d_train.py" \
     --out "$B/mb/ckpt/rh_h4d_v04_w0_full.pt"

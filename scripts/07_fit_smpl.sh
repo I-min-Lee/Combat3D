@@ -18,7 +18,7 @@ PID=${4:?need person id (0 or 1)}
 TAG=${5:-self2}
 export FIT_K=${FIT_K:-0.024}
 
-$PY "$B/code/adapters/harmony4d/pipeline/fit_h4d.py" "$PID" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/pipeline/fit_h4d.py" "$PID" \
     --start 1 --end "$((NF+1))" \
     --annots "$B/asm_${TAG}_$TAKE/annots" --k3d "$B/em_${TAG}_$TAKE/lam1.0" \
     --calib "$B/calib_gt_$TAKE" --frames "$B/frames/$ID/4" --out "$B/emfit_h4d"

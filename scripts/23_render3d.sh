@@ -15,7 +15,7 @@ TAKE=${1:?usage: 23_render3d.sh <take> <n-frames> [start]}
 N=${2:?need frame count}
 START=${3:-0}
 
-$PY "$B/code/stage8_render/render3d_5000f13.py" \
+$PY "$B/code/label_pipeline/stages/8_render/render3d_5000f13.py" \
     --smpl "$B/final13_mono_$TAKE" --out "$B/render3d_mono_$TAKE" \
     --start "$START" --end "$N" --fps 20 \
     --floor=-1.187,1.643,-1.520,1.100

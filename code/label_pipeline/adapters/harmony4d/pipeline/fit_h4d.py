@@ -127,7 +127,7 @@ def main():
     os.makedirs(d + '/fit', exist_ok=True)
 
     # ---- data cfg：从原版模板派生，替路径/视角/帧范围 ----
-    tpl = open(B + '/code/stage6_fit/data_fit_off_p0_14k.yml', encoding='utf-8').read()
+    tpl = open(B + '/code/label_pipeline/stages/6_fit/data_fit_off_p0_14k.yml', encoding='utf-8').read()
     txt = (tpl.replace('/root/autodl-tmp/emfit_rtd14k/pid0', d)
               .replace("subs: ['1','3','4','7','11']",
                        "subs: [%s]" % ','.join("'%s'" % v for v in views))

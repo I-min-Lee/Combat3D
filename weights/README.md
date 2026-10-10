@@ -28,8 +28,10 @@ cp Combat3D-weights-20261005/ckpt/* $COMBAT3D_ROOT/mb/ckpt/
 | `base_vp3d_ftpub.pt` | `e1fb209b7384` | **VideoPose3D, fine-tuned from the public detectron weights → 106.1 mm** | 106.1 mm |
 | `base_vp3d_ftpub_cpn.pt` | `58751e597beb` | **VideoPose3D, fine-tuned from the public cpn weights → 115.9 mm** | 115.9 mm |
 | `rh_h4d_v04_w0_full.pt` | `4d9bdb99240e` | Root-regression head (absolute positioning, 9 mm) | — |
+| `h4d_dt.pt` | `792e252f37a3` | **Rate-conditioned lifter** (Δt conditioning: one extra input channel `log2(fps/f0)`), Harmony4D | 21.9 mm @ 20 fps |
+| `h4d_aug.pt` | `a8e6ee7f962e` | **Frame-rate-augmented** lifter (training set merges 20 / 10 / 5 fps copies) | 41.9 mm @ 20 fps |
 
-### Which VideoPose3D checkpoint is the paper's?
+### Which VideoPose3D checkpoint should be used?
 
 **`base_vp3d_ftpub.pt` and `base_vp3d_ftpub_cpn.pt`.** Both were trained with `z03_ft.py`
 **warm-started from the public pre-trained weights** (`FT_INIT`), which is the protocol the
@@ -40,7 +42,7 @@ shipped**:
 
 | File | What it is | Why it is excluded |
 |---|---|---|
-| `base_vp3d_ft120.pt` | trained **from scratch**, 120 epochs → 120.3 mm | from-scratch training measures data efficiency, not architecture. Comparing a pre-trained model against it is not a fair protocol; the paper explicitly discards it. |
+| `base_vp3d_ft120.pt` | trained **from scratch**, 120 epochs → 120.3 mm | from-scratch training measures data efficiency, not architecture. Comparing a pre-trained model against it is not a fair protocol; it is therefore excluded here. |
 | `base_vp3d_ft.pt` | trained from scratch, 40 epochs → 149.1 mm | same reason |
 | `base_mixste_ft.pt` | trained from scratch, 60 epochs → **338.5 mm** | same reason, and the result is under-trained rather than representative. MixSTE is omitted from the table entirely: only ONNX weights are public, no PyTorch checkpoint, so the same-protocol warm start is impossible. |
 

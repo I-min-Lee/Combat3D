@@ -22,7 +22,7 @@ print(max(int(os.path.basename(p)[:-5]) for p in glob.glob(d+'/*.json')))" 2>/de
   AB_CAL=$CAL AB_VIEWS=$V AB_ANNOTS=$B/asm_off_$T/annots \
   AB_W_IMG=3840 AB_H_IMG=2160 AB_DET_DIR=$B/det_gt2_$T \
   AB_NO_ENUM=1 AB_NO_BORDER=1 \
-  $PY -W ignore code/adapters/harmony4d/pipeline/tri_ablate.py \
+  $PY -W ignore code/label_pipeline/adapters/harmony4d/pipeline/tri_ablate.py \
      --out $B/em_naive_$T --start 1 --end $((NF+1)) --min-conf 0.3 --lams 1.0 --order 2 2>&1 | tail -2
   echo "   -> $(ls $B/em_naive_$T/lam1.0/pid0/keypoints3d 2>/dev/null | wc -l) 帧"
 done

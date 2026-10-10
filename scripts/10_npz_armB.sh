@@ -12,6 +12,6 @@ B="${COMBAT3D_ROOT:-/workshop/Lym/combat3d}"
 PY="$B/envs/miniconda3/envs/pose312/bin/python"
 V="${V:-01,03,04,07,09,14}"
 TAKE=${1:?usage: 10_npz_armB.sh <take>   (run once per take; -out is cumulative)}
-$PY "$B/monocular/mb_npz.py" --tag "$TAKE" --views "$V" \
+$PY "$B/monocular/lifter/mb_npz.py" --tag "$TAKE" --views "$V" \
     --root "$B" --out "$B/mb/data_h4d_offtri"
 echo "-> $B/mb/data_h4d_offtri"

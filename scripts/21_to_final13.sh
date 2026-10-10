@@ -5,7 +5,7 @@
 #  (root-regression head, or the geometric bone-length/ground fallback).
 #    reads  : 2D annots (this view), calib, ckpt, [root head]
 #    writes : $B/final13_mono_<take>
-#  Underlying script: monocular/mb_to_final13.py
+#  Underlying script: monocular/lifter/mb_to_final13.py
 #  Full explanation: docs/REPRODUCE.md §7
 #
 #  ★ This is the ONLY place in the released pipeline where the prediction path
@@ -48,7 +48,7 @@ CALIB=${CALIB:-$B/calib_${TAG}}
 RH_ARGS=()
 [ -n "$ROOTHEAD" ] && RH_ARGS=(--root-head "$ROOTHEAD")
 
-$PY "$B/monocular/mb_to_final13.py" \
+$PY "$B/monocular/lifter/mb_to_final13.py" \
     --take "$TAKE" --tag "$TAG" --view "$VIEW" --src annots \
     --annots "$ANNOTS" --calib "$CALIB" --ckpt "$CK" \
     "${RH_ARGS[@]}" \

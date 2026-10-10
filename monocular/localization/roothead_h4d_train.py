@@ -59,7 +59,7 @@ def build(view, win):
         F = RH.person_feats(s['k2d'], R_, T_, Kk, W_, H_)
         # ★ 米制化只在【相机系深度】上乘尺度：缩 3D 而不缩外参 T 会把变换算错
         # ★2026-10-04 修 bug：k3d 不能先乘 ms —— R_/T_ 仍是 COLMAP 单位，几何不自洽。
-        #   手册 §12.4 的正确写法：true_lambda(k2d, k3d, R, T) * ms。
+        #   正确写法（见 docs/PITFALLS.md）：true_lambda(k2d, k3d, R, T) * ms。
         #   实测 train01_hugging view04：旧写法 λ=3.20/3.42；正确写法 1.99/2.07；真值 2.16 ✓
         lam = RH.true_lambda(s['k2d'], s['k3d'].astype(np.float64), R_, T_, Kk) * ms
         m = np.isfinite(lam) & (lam > 0.3) & (lam < 60.0)

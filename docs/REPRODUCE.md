@@ -1,6 +1,6 @@
 # Reproduction guide — Combat3D
 
-Everything needed to go from Harmony4D raw data to every number in the paper, **in
+Everything needed to go from Harmony4D raw data to every reported number, **in
 execution order**. Each section names the wrapper in `scripts/` and the underlying
 script it runs.
 
@@ -19,7 +19,7 @@ V=01,03,04,07,09,14                          # the six Harmony4D views used thro
 RAW=$B/data/harmony4d/raw                    # <-- your unpacked Harmony4D sequences
 TAKE=016_mma4                                # <-- one sequence
 NF=<last frame index of that take>
-ID=<Harmony4D integer sequence id>           # e.g. 15 for 016_mma4 — see §1.1
+ID=<Harmony4D integer sequence id>           # e.g. 15 for 016_mma4 
 ```
 
 Two rules that will save you hours:
@@ -39,10 +39,10 @@ set it before use, and never commit it.
 This is the zero-manual-annotation pipeline. Layers are ordered so that everything
 scene-specific is at the front and everything universal is at the back.
 
-### 1.1 Calibration — `scripts/01_calib.sh` → `code/adapters/harmony4d/h4d_calib.py`
+### 1.1 Calibration — `scripts/01_calib.sh` → `code/label_pipeline/adapters/harmony4d/h4d_calib.py`
 
 ```bash
-$PY code/adapters/harmony4d/h4d_calib.py \
+$PY code/label_pipeline/adapters/harmony4d/h4d_calib.py \
     --seq-root $RAW/$TAKE --out $B/calib_gt_$TAKE --views $V
 ```
 
@@ -52,7 +52,7 @@ COLMAP frame**, which is why all downstream 3D (and `gt3d_colmap`) lives in COLM
 ### 1.2 Frame chain — `scripts/02_frames.sh` → `h4d_frames.py`
 
 ```bash
-$PY code/adapters/harmony4d/h4d_frames.py \
+$PY code/label_pipeline/adapters/harmony4d/h4d_frames.py \
     --seq-root $RAW/$TAKE --frames-root $B/frames \
     --match $ID --seg 1 --views $V
 ```
@@ -70,16 +70,16 @@ it does not (1.3b), and expect to tune it.
 **1.3a Official boxes + identity — `scripts/03a_boxes_official.sh` → `h4d_boxes.py`**
 
 ```bash
-$PY code/adapters/harmony4d/h4d_boxes.py \
+$PY code/label_pipeline/adapters/harmony4d/h4d_boxes.py \
     --seq-root $RAW/$TAKE --out $B/det_gt2_$TAKE --views $V --tag $TAKE
 ```
 
-This is the route used for arms **A** and **B** in the paper.
+This is the route used for arms **A** and **B**.
 
 **1.3b Fully self-built detection + identity — `scripts/03b_boxes_self.sh` → `det_self_final.py`**
 
 ```bash
-$PY code/adapters/harmony4d/pipeline/det_self_final.py \
+$PY code/label_pipeline/adapters/harmony4d/pipeline/det_self_final.py \
     --frames-root $B/frames/$ID/1 --out $B/det_self2_$TAKE --views $V --tag $TAKE \
     --start 1 --end $NF --border-margin 0.15 --ref-view 04 \
     --calib $B/calib_gt_$TAKE --device 0
@@ -94,7 +94,7 @@ scene-specific change we made.
 
 ```bash
 VP_ROOT=$B VP_MATCH=$ID VP_SEG=1 \
-$PY code/adapters/harmony4d/pipeline/vp_h4d.py \
+$PY code/label_pipeline/adapters/harmony4d/pipeline/vp_h4d.py \
     --det $B/det_self2_$TAKE --out $B/vp_self2_$TAKE \
     --views 01 03 04 07 09 14 --start 1 --end $NF
 ```
@@ -105,7 +105,7 @@ GPU fail silently.
 ### 1.5 Assemble — `scripts/05_assemble.sh` → `assemble_h4d.py`
 
 ```bash
-$PY code/adapters/harmony4d/pipeline/assemble_h4d.py \
+$PY code/label_pipeline/adapters/harmony4d/pipeline/assemble_h4d.py \
     --raw $B/vp_self2_$TAKE --out $B/asm_self2_$TAKE \
     --views $V --start 1 --end $NF
 ```
@@ -117,7 +117,7 @@ $PY code/adapters/harmony4d/pipeline/assemble_h4d.py \
 ```bash
 AB_CAL=$B/calib_gt_$TAKE AB_VIEWS=$V AB_ANNOTS=$B/asm_self2_$TAKE/annots \
 AB_W_IMG=3840 AB_H_IMG=2160 AB_DET_DIR=$B/det_self2_$TAKE \
-$PY code/adapters/harmony4d/pipeline/tri_h4d.py \
+$PY code/label_pipeline/adapters/harmony4d/pipeline/tri_h4d.py \
     --out $B/em_self2_$TAKE --start 1 --end $((NF+1)) \
     --min-conf 0.3 --lams 1.0 --order 2
 ```
@@ -136,7 +136,7 @@ Only needed for mesh-format output and PVE-style comparisons; the reported MPJPE
 numbers come from the 13-joint lifter output and do not require this step.
 
 ```bash
-FIT_K=0.024 $PY code/adapters/harmony4d/pipeline/fit_h4d.py <pid> \
+FIT_K=0.024 $PY code/label_pipeline/adapters/harmony4d/pipeline/fit_h4d.py <pid> \
     --start 1 --end $((NF+1)) \
     --annots $B/asm_self2_$TAKE/annots --k3d $B/em_self2_$TAKE/lam1.0 \
     --calib $B/calib_gt_$TAKE --frames $B/frames/$ID/4 --out $B/emfit_h4d
@@ -152,7 +152,7 @@ not the same thing as our pipeline output.
 
 ```bash
 # 08 — extract official GT
-$PY code/adapters/harmony4d/h4d_gt.py --seq-root $RAW/$TAKE --out $B/gt_$TAKE --views $V
+$PY code/label_pipeline/adapters/harmony4d/h4d_gt.py --seq-root $RAW/$TAKE --out $B/gt_$TAKE --views $V
 
 # 09 — move the official 3D into our calibration world frame
 $PY scripts/tools/ai2_fixalign.py
@@ -182,7 +182,7 @@ is COCO17** — the mapping is applied at evaluation time, never by reordering s
 
 | Script | Arm | 2D source | 3D label source | Dataset | Count |
 |---|---|---|---|---|---|
-| `10_npz_armB.sh` → `monocular/mb_npz.py` | **B** | `asm_off_*` (official) | `em_off_*` (ours) | `data_h4d_offtri` | 1800 npz / 150 takes |
+| `10_npz_armB.sh` → `monocular/lifter/mb_npz.py` | **B** | `asm_off_*` (official) | `em_off_*` (ours) | `data_h4d_offtri` | 1800 npz / 150 takes |
 | `11_npz_armA.sh` → `scripts/tools/z31_mkab.py` | **A** | copied from B | `gt_<take>_aligned` (official) | `data_h4d_gtalign` | 828 npz / 69 takes |
 | `12_npz_armC.sh` → `scripts/tools/ae1_mknpz.py` | **C** | `asm_self2_*` | `em_self2_*` | `data_h4d_selfv2` | 1476 npz / 123 takes |
 
@@ -225,10 +225,10 @@ Three things about this command are load-bearing:
   below 1 mm is **not saved**. We observed a 17.6 mm epoch discarded with 18.4 mm left on
   disk. Lower `--min-delta` if you care about the last millimetre.
 
-### 4.2 Root-regression head — `scripts/14_train_roothead.sh` → `monocular/roothead_h4d_train.py`
+### 4.2 Root-regression head — `scripts/14_train_roothead.sh` → `monocular/localization/roothead_h4d_train.py`
 
 ```bash
-$PY monocular/roothead_h4d_train.py --out $B/mb/ckpt/rh_h4d_v04_w0_full.pt
+$PY monocular/localization/roothead_h4d_train.py --out $B/mb/ckpt/rh_h4d_v04_w0_full.pt
 ```
 
 Trains on all 150 takes / 128,104 frames. Data volume is what matters here: 828 npz
@@ -280,15 +280,15 @@ Reports against **official** GT, over the 13 joints both layouts share
 (H36M17 → final13 → COCO17 composite mapping). Prints both the full 15 takes and the
 9 takes with the leaked `sword3` set removed.
 
-> ⚠️ **This is not the script the paper's table comes from.**
+> ⚠️ **This is not the script the main table comes from.**
 > `z25_gtEval.py` pools every `(take, view, pid)` into one median and reports
-> **81.3 mm** for arm B. `ah1_abc.py` (§5.2) takes the per-take median first and then the
-> median across takes, and reports **42.4 mm** — the paper's number. Same weights, same
+> **81.3 mm** for arm B. `ah1_abc.py` takes the per-take median first and then the
+> median across takes, and reports **42.4 mm** — the reported number. Same weights, same
 > ground truth, same metric; only the pooling differs. **Quote the `ah1_abc.py` number.**
 
 ### 5.2 All arms at once — `scripts/18_eval_abc.sh` → `scripts/tools/ah1_abc.py` ★
 
-**This is the authoritative evaluator and the source of the paper's main table.**
+**This is the authoritative evaluator and the source of the main table.**
 
 ```bash
 $PY scripts/tools/ah1_abc.py
@@ -354,7 +354,7 @@ official 2D comparison is unfair by construction. This is why arm C is marked
 ```bash
 # 21 — run the fine-tuned lifter over a take, with absolute root anchoring
 #      (bone-length 850 mm + lowest-ankle-on-ground depth solve)
-$PY monocular/mb_to_final13.py --take $TAKE --view 04 --tag idfix \
+$PY monocular/lifter/mb_to_final13.py --take $TAKE --view 04 --tag idfix \
     --annots $B/easymocap_idfix/<mx>_<sx>/annots --calib $B/calib_idfix \
     --ckpt $B/mb/ckpt/Combat3D_FULL.pt --out $B/final13_mono_$TAKE --stride 8
 
@@ -363,7 +363,7 @@ $PY scripts/tools/v26_node_overlay.py --take $TAKE --view 04 --match $ID \
     --f13 $B/final13_mono_$TAKE --out $B/nodes_$TAKE
 
 # 23 — 3D node render in world space
-$PY code/stage8_render/render3d_5000f13.py --smpl $B/final13_mono_$TAKE \
+$PY code/label_pipeline/stages/8_render/render3d_5000f13.py --smpl $B/final13_mono_$TAKE \
     --out $B/render3d_mono_$TAKE --start 0 --end <N> --fps 20 \
     --floor=-1.187,1.643,-1.520,1.100
 ```
@@ -389,13 +389,13 @@ Panoptic — a **10×** difference.
 
 ---
 
-## 9. Cross-domain: CMU Panoptic — `code/adapters/panoptic/`
+## 9. Cross-domain: CMU Panoptic — `code/label_pipeline/adapters/panoptic/`
 
 Panoptic provides independent optical mocap and needs no login. Sequence
 `160906_ian2`, frames 4256–4855, 5 views.
 
 ```bash
-bash code/adapters/panoptic/run_p2.sh
+bash code/label_pipeline/adapters/panoptic/run_p2.sh
 ```
 
 Differences from the Harmony4D adapter, all of which will bite you:
@@ -446,7 +446,7 @@ under `$COMBAT3D_ROOT`:
 
 ### The one environment file you must copy
 
-`code/env/sitecustomize.py` must be placed in the target environment's `site-packages/`.
+`code/label_pipeline/env/sitecustomize.py` must be placed in the target environment's `site-packages/`.
 Python imports it automatically at startup. It fixes three things that otherwise break
 EasyMocap's fit stage on Python 3.12 / numpy 2:
 

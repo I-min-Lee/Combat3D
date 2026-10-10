@@ -99,7 +99,7 @@ def main():
     if not a.no_cand:
         import importlib.util
         from ultralytics import RTDETR
-        sp = importlib.util.spec_from_file_location('rtd', B + '/code/stage1_detect/rtdetr_pipeline.py')
+        sp = importlib.util.spec_from_file_location('rtd', B + '/code/label_pipeline/stages/1_detect/rtdetr_pipeline.py')
         m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m)
         model = RTDETR(m.MODEL_PATH if os.path.exists(m.MODEL_PATH)
                        else B + '/port/weights/rtdetr-l.pt')

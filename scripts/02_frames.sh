@@ -15,7 +15,7 @@ TAKE=${1:?usage: 02_frames.sh <take> <int-seq-id>   e.g. 016_mma4 16}
 ID=${2:?need the integer sequence id (numeric prefix of the take name, no suffix)}
 RAW=${RAW:-$B/data/harmony4d/raw}
 
-$PY "$B/code/adapters/harmony4d/h4d_frames.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/h4d_frames.py" \
     --seq-root "$RAW/$TAKE" --frames-root "$B/frames" \
     --match "$ID" --seg 1 --views "$V"
 echo "-> $B/frames/$ID/1"

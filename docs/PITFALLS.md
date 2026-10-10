@@ -28,7 +28,7 @@ pip install --force-reinstall --no-deps nvidia-cudnn-cu12==9.1.0.70
 tensor. The global scale `s` comes out 0.55–0.75× of truth and every mm metric inherits
 it.
 
-**Fix:** `out[:, :, 0:1, :]`. End-to-end goes 190.3 → **27.5 mm**. See `METRICS.md` §2.
+**Fix:** `out[:, :, 0:1, :]`. End-to-end goes 190.3 → **27.5 mm**. See `METRICS.md`.
 
 ### 3. Official GT is in a different world frame → 746 px re-projection
 

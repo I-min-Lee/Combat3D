@@ -15,7 +15,7 @@ TAKE=${1:?usage: 05_assemble.sh <take> <last-frame> [2d-tag]}
 NF=${2:?need last frame index}
 TAG=${3:-self2}
 
-$PY "$B/code/adapters/harmony4d/pipeline/assemble_h4d.py" \
+$PY "$B/code/label_pipeline/adapters/harmony4d/pipeline/assemble_h4d.py" \
     --raw "$B/vp_${TAG}_$TAKE" --out "$B/asm_${TAG}_$TAKE" \
     --views "$V" --start 1 --end "$NF"
 echo "-> $B/asm_${TAG}_$TAKE"
